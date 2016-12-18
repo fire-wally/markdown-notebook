@@ -1,0 +1,18 @@
+##Copy/paste this block into the nginx.conf file to add the markdown journal
+##as a subfolder of the current site. Note that the "root" is the directory
+## *above* the one that you will type in, so for the config below the URL is at
+## localhost/notes/index.html and the file is at /www/notes/index.html
+
+## Config file locations:
+# OSX with Homebrew: /usr/local/etc/nginx/nginx.conf
+
+server {
+        listen       80;
+        server_name  localhost;
+
+
+        location /notes/ {
+            root /www;
+            index index.html;
+        }
+}
