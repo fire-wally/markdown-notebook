@@ -4,6 +4,7 @@ import os
 import shutil
 import markdown
 
+
 def main(argv):
     if len(argv) != 3:
         print("USAGE: markdown-journal.py source-dir output-dir")
@@ -32,25 +33,47 @@ def clean_output(dest):
 
 
 def generate_output(source, dest):
+    files_written=[]
     print("Creating .html Files in Output Directory")
     for root, dirs, files in os.walk(source):
         for name in files:
+            print(os.path.join(dest,name))
             ##Transform Markdown files to HTML. Copy all other files as-is
             if (name.endswith(".md")):
-                generate_markdown(os.path.join(root, name), dest)
+                new_file = generate_markdown(os.path.join(root, name), dest)
+                files_written.append(new_file)
             else:
                 shutil.copy(os.path.join(root, name), dest)
         for name in dirs:
             os.mkdir(os.path.join(dest, name))
+    #Now generate the index file
+    generate_index(files_written, dest)
+
+def generate_index(files, dest_dir):
+    md_content = "# Ryan's Notes \n"
+    md_content += "## Pages \n\n"
+    for file_name in files:
+        md_content += "* [{0}](http://localhost/notes/{0})\n".format(file_name)
+    html = content_to_html(md_content)
+    index_path = os.path.join(dest_dir, "index.html")
+    with open(index_path, "w+") as opened_file:
+        opened_file.write(html)
+
 
 def generate_markdown(source_file, dest_dir):
+    '''generates a new html file in the dest directory, returns the name of the 
+    newly-created file'''
+
     md = ""
     with open(source_file, 'r') as opened_file:
         md = opened_file.read()
     html = content_to_html(md)
-    new_path = os.path.join(dest_dir, os.path.split(source_file)[1].replace("md", "html"))
+    new_name = os.path.split(source_file)[1].replace("md", "html")
+    new_path = os.path.join(dest_dir, new_name)
     with open(new_path, "w+") as opened_file:
         opened_file.write(html)
+    return new_name
+
 
 def content_to_html(source_string):
     with open("template.html") as template_file: #Assume in same directory as code
