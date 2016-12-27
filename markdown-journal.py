@@ -50,11 +50,7 @@ def generate_output(source, dest):
     generate_index(files_written, dest)
 
 def generate_index(files, dest_dir):
-    md_content = "# Ryan's Notes \n"
-    md_content += "## Pages \n\n"
-    for file_name in files:
-        md_content += "* [{0}](http://localhost/notes/{0})\n".format(file_name)
-    html = content_to_html(md_content)
+    html = generate_index_html(files)
     index_path = os.path.join(dest_dir, "index.html")
     with open(index_path, "w+") as opened_file:
         opened_file.write(html)
@@ -74,9 +70,19 @@ def generate_markdown(source_file, dest_dir):
         opened_file.write(html)
     return new_name
 
+def generate_index_html(pages):
+    with open("index-template.html") as template_file:
+        html_template = template_file.read()
+    alpha_page_list = "<ul>"
+    for page in pages:
+        alpha_page_list += "\n<li><a href='http://localhost/notes/{0}'>{0}</a></li>".format(page)
+    alpha_page_list += '\n</ul>'
+    html_page = html_template.replace("{{PAGE_LIST_ALPHA}}", alpha_page_list)
+    return html_page
+
 
 def content_to_html(source_string):
-    with open("template.html") as template_file: #Assume in same directory as code
+    with open("page-template.html") as template_file: #Assume in same directory as code
         html_template = template_file.read()
     page_fragment = markdown.markdown(source_string)
     html_page = html_template.replace("{{PAGE_GOES_HERE}}", page_fragment)
