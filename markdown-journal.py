@@ -4,6 +4,10 @@ import os
 import shutil
 import markdown
 
+class Page(object):
+    def __init__(self, filename, mtime):
+        self.file_name = filename
+        self.modified_at = mtime
 
 def main(argv):
     if len(argv) != 3:
@@ -40,7 +44,9 @@ def generate_output(source, dest):
             print(os.path.join(dest,name))
             ##Transform Markdown files to HTML. Copy all other files as-is
             if (name.endswith(".md")):
-                new_file = generate_markdown(os.path.join(root, name), dest)
+                file_path = os.path.join(root, name)
+                new_file_name = generate_markdown(file_path, dest)
+                new_file = Page(new_file_name, os.path.getmtime(file_path))
                 files_written.append(new_file)
             else:
                 shutil.copy(os.path.join(root, name), dest)
@@ -75,9 +81,17 @@ def generate_index_html(pages):
         html_template = template_file.read()
     alpha_page_list = "<ul>"
     for page in pages:
-        alpha_page_list += "\n<li><a href='http://localhost/notes/{0}'>{0}</a></li>".format(page)
+        alpha_page_list += "\n<li><a href='http://localhost/notes/{0}'>{0}</a></li>".format(page.file_name)
     alpha_page_list += '\n</ul>'
-    html_page = html_template.replace("{{PAGE_LIST_ALPHA}}", alpha_page_list)
+
+    recent_page_list = "<ul>"
+    for page in sorted(pages, key=lambda p: p.modified_at, reverse=True):
+        recent_page_list += "\n<li><a href='http://localhost/notes/{0}'>{0}</a></li>".format(page.file_name)
+    recent_page_list += "</ul>"
+    html_page = html_template.replace("{{PAGE_LIST_RECENT}}", recent_page_list) \
+                             .replace("{{PAGE_LIST_ALPHA}}", alpha_page_list)
+
+
     return html_page
 
 
